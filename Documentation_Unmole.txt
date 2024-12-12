@@ -1,0 +1,11 @@
+#################################
+	    Unmole Project
+#################################
+
+Name: Unmole Desktop Monitorate
+
+Desciption:A free software project that shows
+through a graphical interface system features.
+Required for checking computer resources.
+
+Date start: 08/12/2024 (dd/mm/yyyy)
