@@ -8,21 +8,41 @@ class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         #MACHINE ATTRIBUTES
-        self.__machine_name = node()
-        self.__machine_os = platform()
-        self.__machine_arq = architecture()[0]
+        try:
+            self.__machine_name = node()
+            self.__machine_os = platform()
+            self.__machine_arq = architecture()[0]
+        except:
+            self._machine_name = "N/A"
+            self.__machine_os = "N/A"
+            self.__machine_arq = "N/A"
+            pass
 
         #CPU ATTRIBUTES
-        self.__cpu_processor = cpuinfo.get_cpu_info()["brand_raw"]
-        self.__cpu_freq = cpuinfo.get_cpu_info()["hz_actual"][0]/10**9
-        self.__cpu_percent = psutil.cpu_percent()
-        self.__cpu_physical_core = psutil.cpu_count(logical=False)
-        self.__cpu_threads_core = psutil.cpu_count(logical=True)
-        self.__cpu_temp = psutil.sensors_temperatures()["k10temp"][0][1]
+        try:
+            self.__cpu_processor = cpuinfo.get_cpu_info()["brand_raw"]
+            self.__cpu_freq = cpuinfo.get_cpu_info()["hz_actual"][0] / 10 ** 9
+            self.__cpu_percent = psutil.cpu_percent()
+            self.__cpu_physical_core = psutil.cpu_count(logical=False)
+            self.__cpu_threads_core = psutil.cpu_count(logical=True)
+            self.__cpu_temp = psutil.sensors_temperatures()["k10temp"][0][1]
+        except:
+            self.__cpu_percent = 0.
+            self.__cpu_physical_core = "N/A"
+            self.__cpu_threads_core = "N/A"
+            self.__cpu_temp = 0.
+            self.__memory_total = 0.
+            self.__memory_actual = 0.
+            pass
 
         #MEMORY ATTRIBUTES
-        self.__memory_total = psutil.virtual_memory().total/1024 ** 3
-        self.__memory_actual = psutil.virtual_memory().used/1024 ** 3
+        try:
+            self.__memory_total = psutil.virtual_memory().total / 1024 ** 3
+            self.__memory_actual = psutil.virtual_memory().used / 1024 ** 3
+        except:
+            self.__memory_total = 0.
+            self.__memory_actual = 0.
+            pass
 
         #WINDOW ATTRIBUTES
         self.geometry('800x400')
