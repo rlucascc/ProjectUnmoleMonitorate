@@ -19,7 +19,7 @@ class App(QMainWindow):
         # GET MACHINE ATTRIBUTES ===========================================================
         try:
             interfaces = list(psutil.net_if_addrs().keys())
-            self._machine_net = net[1]
+            self._machine_net = interfaces[1]
             self._ip_address = psutil.net_if_addrs()[self._machine_net][0][1]
         except:
             self._machine_net = 'N/A'
