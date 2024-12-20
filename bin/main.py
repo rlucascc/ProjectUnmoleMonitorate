@@ -1,105 +1,177 @@
-import customtkinter as ctk
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel
+from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QFont,QFontDatabase
+import pyqtgraph as pg
 import psutil
-from platform import  platform,architecture,node
 import cpuinfo
-from tkinter import PhotoImage
+import platform
 
-class MainApp(ctk.CTk):
+import sys
+import threading
+
+
+class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        #MACHINE ATTRIBUTES
+
+        # ===================================== GET MACHINE ATTRIBUTES =============================================
+
+        # GET MACHINE ATTRIBUTES ===========================================================
         try:
-            self.__machine_name = node()
-            self.__machine_os = platform()
-            self.__machine_arq = architecture()[0]
+            interfaces = list(psutil.net_if_addrs().keys())
+            self._machine_net = net[1]
+            self._ip_address = psutil.net_if_addrs()[self._machine_net][0][1]
+        except:
+            self._machine_net = 'N/A'
+            self._ip_address = 'N/A'
+
+        try:
+            self._machine_name = platform.node()
+            self._machine_os = platform.platform()
+            self._machine_arq = platform.architecture()[0]
         except:
             self._machine_name = "N/A"
-            self.__machine_os = "N/A"
-            self.__machine_arq = "N/A"
+            self._machine_os = "N/A"
+            self._machine_arq = "N/A"
             pass
 
-        #CPU ATTRIBUTES
+        # GET CPU ATTRIBUTES ===============================================================
         try:
-            self.__cpu_processor = cpuinfo.get_cpu_info()["brand_raw"]
-            self.__cpu_freq = cpuinfo.get_cpu_info()["hz_actual"][0] / 10 ** 9
-            self.__cpu_percent = psutil.cpu_percent()
-            self.__cpu_physical_core = psutil.cpu_count(logical=False)
-            self.__cpu_threads_core = psutil.cpu_count(logical=True)
-            self.__cpu_temp = psutil.sensors_temperatures()["k10temp"][0][1]
+            self._cpu_processor = cpuinfo.get_cpu_info()["brand_raw"]
+            self._cpu_freq = cpuinfo.get_cpu_info()["hz_actual"][0] / 10 ** 9
+            self._cpu_percent = psutil.cpu_percent()
+            self._cpu_physical_core = psutil.cpu_count(logical=False)
+            self._cpu_threads_core = psutil.cpu_count(logical=True)
+            self._cpu_temp = psutil.sensors_temperatures()["k10temp"][0][1]
         except:
-            self.__cpu_percent = 0.
-            self.__cpu_physical_core = "N/A"
-            self.__cpu_threads_core = "N/A"
-            self.__cpu_temp = 0.
-            self.__memory_total = 0.
-            self.__memory_actual = 0.
+            self._cpu_percent = 0.
+            self._cpu_physical_core = "N/A"
+            self._cpu_threads_core = "N/A"
+            self._cpu_temp = 0.
+            self._memory_total = 0.
+            self._memory_actual = 0.
             pass
 
-        #MEMORY ATTRIBUTES
+        # MEMORY ATTRIBUTES ===============================================================
         try:
-            self.__memory_total = psutil.virtual_memory().total / 1024 ** 3
-            self.__memory_actual = psutil.virtual_memory().used / 1024 ** 3
+            self._memory_total = psutil.virtual_memory().total / 1024 ** 3
+            self._memory_actual = psutil.virtual_memory().used / 1024 ** 3
         except:
-            self.__memory_total = 0.
-            self.__memory_actual = 0.
+            self._memory_total = 0.
+            self._memory_actual = 0.
             pass
+        # ==========================================================================================================
+        # ======================================= WINDOW APP CONFIG ================================================
 
-        #WINDOW ATTRIBUTES
-        self.geometry('800x400')
-        self.title('Unmole Desktop Monitorator')
-        self.resizable(False, False)
-        self._set_appearance_mode('dark')
-        self.iconphoto(False, PhotoImage(file='../images/Unmole_IMG.png'))
+        # MAIN WINDOWS CONFIG
+        self.setWindowTitle("Unmole Desktop Monitorator")
+        self.setFixedSize(630, 700)
+        self.setStyleSheet("background-color: black;")
 
-        #MACHINE LABEL
-        self.label_mac_name = ctk.CTkLabel(self,text=f'Hostname: {self.__machine_name}', fg_color='#174ba2', bg_color='transparent',corner_radius=8 , font=('roboto', 20), text_color='white').place(x=15, y=10)
-        self.label_mac_os = ctk.CTkLabel(self,text=f'OS: {self.__machine_os}', fg_color='#174ba2', bg_color='transparent',corner_radius=8 , font=('roboto', 20), text_color='white').place(x=15, y=50)
-        self.label_mac_arq = ctk.CTkLabel(self,text=f'Architecture: {self.__machine_arq}', fg_color='#174ba2', bg_color='transparent',corner_radius=8 , font=('roboto', 20), text_color='white').place(x=600, y=10)
+        # CREATE LAYOUT
+        self.layout = QVBoxLayout()
 
-        #CPU LABEL
-        self.label_cpu_proc = ctk.CTkLabel(self, text=f'Processor: {self.__cpu_processor}', fg_color='#174ba2',bg_color='transparent', corner_radius=8, font=('roboto', 20), text_color='white').place(x=15, y=110)
-        self.label_cpu_freq = ctk.CTkLabel(self, text=f'CPU frequency: {self.__cpu_freq:.2f} Ghz', fg_color='#174ba2',bg_color='transparent', corner_radius=8, font=('roboto', 20), text_color='white')
-        self.label_cpu_freq.pack()
-        self.label_cpu_freq.place(x=15, y=150)
-        self.label_cpu_percent = ctk.CTkLabel(self, text=f'CPU percent: {self.__cpu_percent} %', fg_color='#174ba2',bg_color='transparent', corner_radius=8, font=('roboto', 20), text_color='white')
-        self.label_cpu_percent.pack()
-        self.label_cpu_percent.place(x=15, y=190)
-        self.label_cpu_Pcore = ctk.CTkLabel(self, text=f'Physical cores: {self.__cpu_physical_core}',fg_color='#174ba2', bg_color='transparent', corner_radius=8,font=('roboto', 20), text_color='white').place(x=600, y=150)
-        self.label_cpu_Lcore = ctk.CTkLabel(self, text=f'Logical cores: {self.__cpu_threads_core}', fg_color='#174ba2',bg_color='transparent', corner_radius=8, font=('roboto', 20),text_color='white').place(x=600, y=190)
-        self.label_cpu_temp = ctk.CTkLabel(self, text=f'CPU : {int(self.__cpu_temp/2)*"|"}', anchor="w" ,width=770 ,fg_color='#174ba2',bg_color='transparent', corner_radius=8, font=('roboto', 35), text_color='white')
-        self.label_cpu_temp.pack()
-        self.label_cpu_temp.place(x=15, y=350)
+        # MAIN WIDGET AND CONFIG
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.central_widget.setLayout(self.layout)
 
-        #MEMORY LABEL
-        self.label_memory_total = ctk.CTkLabel(self, text=f'Memory total: {self.__memory_total:.2f} GB', fg_color='#174ba2',bg_color='transparent', corner_radius=8, font=('roboto', 20), text_color='white').place(x=15, y=250)
-        self.label_memory_actual = ctk.CTkLabel(self, text=f'Memory used: {self.__memory_actual:.2f} GB', fg_color='#174ba2',bg_color='transparent', corner_radius=8, font=('roboto', 20), text_color='white')
-        self.label_memory_actual.pack()
-        self.label_memory_actual.place(x=15, y=290)
+        # CREATE FONT
+        font_id = QFontDatabase.addApplicationFont("../Resources/Digital7-rg1mL.ttf")
+        family = QFontDatabase.applicationFontFamilies(font_id)[0]
+        self.font = QFont(family, 19)
 
-    #MONITORETE METHODS
-    def monitore_CPU(self):
-        #CPU FREQ UPDATE
-        self.__cpu_freq = cpuinfo.get_cpu_info()["hz_actual"][0]/10**9
-        self.label_cpu_freq.configure(text=f'CPU frequency: {self.__cpu_freq:.2f} Ghz')
+        # CREATE A MEMORY LABEL
+        self.memory_label = QLabel(f'{20 * "="} MEMORY STATUS {25 * "="}\n\n'
+                                   f'>> MEMORIA TOTAL: {self._memory_total:.2f} GB\n'
+                                   f'>> MEMORIA UTILIZADA: {self._memory_actual:.2f} GB')
+        self.memory_label.setFont(self.font)
+        self.memory_label.setStyleSheet('color:green')
 
-        #CPU PERCENT UPDATE
-        self.__cpu_percent = psutil.cpu_percent()
-        self.label_cpu_percent.configure(text=f'CPU percent: {self.__cpu_percent} %')
+        # CREATE A MACHINE LABEL
+        self.machine_label = QLabel(f'{20 * "="} MACHINE STATUS {25 * "="}\n\n'
+                                    f'>> NOME DO HOST: {self._machine_name}     >> INTERFACE DE REDE: {self._machine_net}\n'
+                                    f'>> ARQUITETURA: {self._machine_arq}  {14 * " "}>> ENDERECO IP: {self._ip_address}\n'
+                                    f'>> SO: {self._machine_os}')
 
-        #CPU TEMP UPDATE
-        self.__cpu_temp = psutil.sensors_temperatures()["k10temp"][0][1]
-        self.label_cpu_temp.configure(text=f'CPU < {self.__cpu_temp:.2f}° > {int(self.__cpu_temp/2)*"|"}')
-        self.label_cpu_temp.after(500, self.monitore_CPU)
-        pass
+        self.machine_label.setFont(self.font)
+        self.machine_label.setStyleSheet('color:green')
 
-    def monitore_MEMORY(self):
-        self.__memory_actual = psutil.virtual_memory().used/1024 ** 3
-        self.label_memory_actual.configure(text=f'Memory used: {self.__memory_actual:.2f} GB')
-        self.label_memory_actual.after(5000, self.monitore_MEMORY)
-        pass
+        # CREATE A CPU LABEL
+        self.CPU_label = QLabel(f'{20 * "="} CPU STATUS {22 * "="}\n\n'
+                                    f'>> PROCESSADOR: {self._cpu_processor}\n'
+                                    f'>> NUCLEOS FÍSICOS {self._cpu_physical_core}\n'
+                                    f'>> NUCLEOS LOGICOS: {self._cpu_threads_core}\n'
+                                    f'>> FREQUENCIA: {self._cpu_freq:.2f} Ghz  {20 * " "}>> PORCENTAGEM: {self._cpu_percent:.2f} %')
 
-if __name__ == "__main__":
-    app = MainApp()
-    app.monitore_CPU()
-    app.monitore_MEMORY()
-    app.mainloop()
+        self.CPU_label.setFont(self.font)
+        self.CPU_label.setStyleSheet('color:green')
+
+        # CREATE A DISK LABEL
+
+        #PLOTS CPUT TEMP
+        self.data = []
+
+        self.plot_widget = pg.PlotWidget()
+        self.plot_widget.setFixedSize(600, 200)
+        self.plot_widget.setTitle(f'Temperatura da CPU: {self._cpu_temp}°')
+        self.plot_widget.setLabel('left', 'Temperatura em Celsius')
+
+        # Adiciona widgets ao layout
+        self.layout.addWidget(self.machine_label)
+        self.layout.addWidget(self.memory_label)
+        self.layout.addWidget(self.CPU_label)
+        self.layout.addWidget(self.plot_widget)
+
+        # CREATE CURVE
+        self.curve = self.plot_widget.plot(self.data, pen='g')
+
+        #CREATE A TIMER TO CALL UPDATE TEMP CPU
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_plots)
+        self.timer.start(100) #100ms
+
+    def update_plots(self):
+        # Adicionar dados novos
+        self.data.append(psutil.sensors_temperatures()["k10temp"][0][1])  # ADD DATA OF CPU TEMP
+        self._cpu_temp = self.data[-1]
+        self.plot_widget.setTitle(f'Temperatura de CPU: {self._cpu_temp:.2f}°')
+
+        # Atualizar a curva
+        self.curve.setData(self.data)
+
+        # Atualiza os demais atributos da máquina
+        if (len(self.data) % 25) == 0:
+            t1 = threading.Thread(target=self.update_atributes)
+            t1.start()
+
+        # Manter o gráfico em uma janela fixa
+        if len(self.data) > 50:
+            self.data.clear()
+
+
+    def update_atributes(self):
+        # MEMORY UPDATE
+        self._memory_actual = self._memory_actual = psutil.virtual_memory().used / 1024 ** 3
+        self.memory_label.setText(f'{20 * "="} MEMORY STATUS {25 * "="}\n\n'
+                                  f'>> MEMORIA TOTAL: {self._memory_total:.2f} GB\n'
+                                  f'>> MEMORIA UTILIZADA: {self._memory_actual:.2f} GB')
+
+        # CPU UPDATE
+        self._cpu_freq = cpuinfo.get_cpu_info()["hz_actual"][0] / 10 ** 9
+        self._cpu_percent = psutil.cpu_percent()
+        self.CPU_label.setText(f'{20 * "="} CPU STATUS {30 * "="}\n\n'
+                                    f'>> PROCESSADOR: {self._cpu_processor}\n'
+                                    f'>> NUCLEOS FÍSICOS {self._cpu_physical_core}\n'
+                                    f'>> NUCLEOS LOGICOS: {self._cpu_threads_core}\n'
+                                    f'>> FREQUENCIA: {self._cpu_freq:.2f} Ghz  {20 * " "}>> PORCENTAGEM: {self._cpu_percent:.2f} %')
+
+
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = App()
+    window.show()
+    sys.exit(app.exec())
+''''''
